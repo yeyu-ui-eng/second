@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { formatDate, statusColor } from '../../utils/helpers';
-import { Plus, Search } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { useI18n } from '../../i18n/I18nContext';
 import toast from 'react-hot-toast';
 
 const stages = ['WAITING', 'ASSIGNED', 'CUTTING', 'SEWING', 'QUALITY_CHECK', 'PACKAGING', 'READY', 'DELIVERED'];
 
 export default function Production() {
+  const { t } = useI18n();
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'ADMIN';
   const [tasks, setTasks] = useState<any[]>([]);
@@ -49,18 +51,18 @@ export default function Production() {
     e.preventDefault();
     try {
       await api.post('/production/assign', assignForm);
-      toast.success('Task assigned');
+      toast.success(t('production.assigned'));
       setShowAssign(false);
       fetchTasks();
-    } catch (err: any) { toast.error(err.response?.data?.error || 'Assignment failed'); }
+    } catch (err: any) { toast.error(err.response?.data?.error || t('production.assignFailed')); }
   };
 
   const handleStageUpdate = async (taskId: string, stage: string) => {
     try {
       await api.put(`/production/${taskId}`, { stage });
-      toast.success(`Stage updated to ${stage}`);
+      toast.success(t('production.stageUpdated', { stage: t(`status.${stage}`) }));
       fetchTasks();
-    } catch (err: any) { toast.error(err.response?.data?.error || 'Update failed'); }
+    } catch (err: any) { toast.error(err.response?.data?.error || t('production.updateFailed')); }
   };
 
   const nextStage = (current: string) => {
@@ -72,52 +74,52 @@ export default function Production() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Production</h1>
-          <p className="text-gray-500">Manage production workflow</p>
+          <h1 className="text-2xl font-bold dark:text-gray-100">{t('production.title')}</h1>
+          <p className="text-gray-500 dark:text-gray-400">{t('production.subtitle')}</p>
         </div>
         {isAdmin && (
-          <button onClick={fetchAssignData} className="btn-primary"><Plus className="w-4 h-4 mr-1" /> Assign Task</button>
+          <button onClick={fetchAssignData} className="btn-primary"><Plus className="w-4 h-4 mr-1" /> {t('production.assignTask')}</button>
         )}
       </div>
 
       {isAdmin && (
-        <div className="card p-4">
-          <select className="input w-auto" value={stageFilter} onChange={(e) => setStageFilter(e.target.value)}>
-            <option value="">All Stages</option>
-            {stages.map((s) => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
+        <div className="card dark:bg-gray-900 dark:border-gray-800 p-4">
+          <select className="input w-auto dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" value={stageFilter} onChange={(e) => setStageFilter(e.target.value)}>
+            <option value="">{t('production.allStages')}</option>
+            {stages.map((s) => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
           </select>
         </div>
       )}
 
-      <div className="card">
+      <div className="card dark:bg-gray-900 dark:border-gray-800">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="text-left px-6 py-3 font-medium text-gray-500">Order #</th>
-                <th className="text-left px-6 py-3 font-medium text-gray-500">Product</th>
-                <th className="text-left px-6 py-3 font-medium text-gray-500">Customer</th>
-                <th className="text-left px-6 py-3 font-medium text-gray-500">Assigned To</th>
-                <th className="text-center px-6 py-3 font-medium text-gray-500">Stage</th>
-                <th className="text-center px-6 py-3 font-medium text-gray-500">Started</th>
-                <th className="text-center px-6 py-3 font-medium text-gray-500">Action</th>
+                <th className="text-left px-6 py-3 font-medium text-gray-500 dark:text-gray-400">{t('production.orderNumber')}</th>
+                <th className="text-left px-6 py-3 font-medium text-gray-500 dark:text-gray-400">{t('production.product')}</th>
+                <th className="text-left px-6 py-3 font-medium text-gray-500 dark:text-gray-400">{t('production.customer')}</th>
+                <th className="text-left px-6 py-3 font-medium text-gray-500 dark:text-gray-400">{t('production.assignedTo')}</th>
+                <th className="text-center px-6 py-3 font-medium text-gray-500 dark:text-gray-400">{t('production.stage')}</th>
+                <th className="text-center px-6 py-3 font-medium text-gray-500 dark:text-gray-400">{t('production.started')}</th>
+                <th className="text-center px-6 py-3 font-medium text-gray-500 dark:text-gray-400">{t('production.action')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {loading ? <tr><td colSpan={7} className="text-center py-8">Loading...</td></tr>
-                : tasks.length === 0 ? <tr><td colSpan={7} className="text-center py-8 text-gray-500">No tasks</td></tr>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+              {loading ? <tr><td colSpan={7} className="text-center py-8">{t('common.loading')}</td></tr>
+                : tasks.length === 0 ? <tr><td colSpan={7} className="text-center py-8 text-gray-500 dark:text-gray-400">{t('production.noTasks')}</td></tr>
                 : tasks.map((task: any) => (
-                    <tr key={task.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium">{task.order?.orderNumber}</td>
-                      <td className="px-6 py-4">{task.order?.product?.name}</td>
-                      <td className="px-6 py-4">{task.order?.customer?.firstName} {task.order?.customer?.lastName}</td>
-                      <td className="px-6 py-4">{task.assignedUser?.firstName} {task.assignedUser?.lastName}</td>
-                      <td className="px-6 py-4 text-center"><span className={statusColor(task.stage)}>{task.stage.replace('_', ' ')}</span></td>
-                      <td className="px-6 py-4 text-center text-gray-500">{task.startedAt ? formatDate(task.startedAt) : '-'}</td>
+                    <tr key={task.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <td className="px-6 py-4 font-medium dark:text-gray-200">{task.order?.orderNumber}</td>
+                      <td className="px-6 py-4 dark:text-gray-300">{task.order?.product?.name}</td>
+                      <td className="px-6 py-4 dark:text-gray-300">{task.order?.customer?.firstName} {task.order?.customer?.lastName}</td>
+                      <td className="px-6 py-4 dark:text-gray-300">{task.assignedUser?.firstName} {task.assignedUser?.lastName}</td>
+                      <td className="px-6 py-4 text-center"><span className={statusColor(task.stage)}>{t(`status.${task.stage}`)}</span></td>
+                      <td className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{task.startedAt ? formatDate(task.startedAt) : '-'}</td>
                       <td className="px-6 py-4 text-center">
                         {task.stage !== 'DELIVERED' && task.stage !== 'READY' && nextStage(task.stage) && (
                           <button onClick={() => handleStageUpdate(task.id, nextStage(task.stage)!)} className="btn-primary btn-sm">
-                            Move to {nextStage(task.stage)!.replace('_', ' ')}
+                            {t('production.moveTo', { stage: t(`status.${nextStage(task.stage)!}`) })}
                           </button>
                         )}
                       </td>
@@ -130,28 +132,28 @@ export default function Production() {
 
       {showAssign && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowAssign(false)}>
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-semibold mb-4">Assign Production Task</h2>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-semibold mb-4 dark:text-gray-100">{t('production.assignTitle')}</h2>
             <form onSubmit={handleAssign} className="space-y-4">
               <div>
-                <label className="label">Order</label>
-                <select className="input" value={assignForm.orderId} onChange={(e) => setAssignForm({ ...assignForm, orderId: e.target.value })} required>
-                  <option value="">Select order</option>
+                <label className="label dark:text-gray-300">{t('production.order')}</label>
+                <select className="input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" value={assignForm.orderId} onChange={(e) => setAssignForm({ ...assignForm, orderId: e.target.value })} required>
+                  <option value="">{t('production.selectOrder')}</option>
                   {tasks.filter((t: any) => t.order).map((t: any) => (
-                    <option key={t.order.id} value={t.order.id}>{t.order.orderNumber} - {t.order.product?.name}</option>
+                    <option key={t.order.id} value={t.order.id}>{t.order.orderNumber} - {t.order?.product?.name}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="label">Production Staff</label>
-                <select className="input" value={assignForm.assignedTo} onChange={(e) => setAssignForm({ ...assignForm, assignedTo: e.target.value })} required>
-                  <option value="">Select staff</option>
+                <label className="label dark:text-gray-300">{t('production.staff')}</label>
+                <select className="input dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" value={assignForm.assignedTo} onChange={(e) => setAssignForm({ ...assignForm, assignedTo: e.target.value })} required>
+                  <option value="">{t('production.selectStaff')}</option>
                   {users.map((u: any) => <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>)}
                 </select>
               </div>
               <div className="flex gap-3 justify-end">
-                <button type="button" onClick={() => setShowAssign(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary">Assign</button>
+                <button type="button" onClick={() => setShowAssign(false)} className="btn-secondary dark:border-gray-700">{t('common.cancel')}</button>
+                <button type="submit" className="btn-primary">{t('production.assign')}</button>
               </div>
             </form>
           </div>

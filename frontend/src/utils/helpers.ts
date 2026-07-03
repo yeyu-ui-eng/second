@@ -1,22 +1,28 @@
+const localeMap: Record<string, string> = { en: 'en-US', fr: 'fr-FR' };
+
+function getLocale(): string {
+  try {
+    const stored = localStorage.getItem('lang');
+    return localeMap[stored || 'en'] || 'en-US';
+  } catch {
+    return 'en-US';
+  }
+}
+
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  return new Intl.NumberFormat(getLocale(), { style: 'currency', currency: 'USD' }).format(amount);
 }
 
 export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+  return new Intl.DateTimeFormat(getLocale(), {
+    year: 'numeric', month: 'short', day: 'numeric',
   }).format(new Date(date));
 }
 
 export function formatDateTime(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return new Intl.DateTimeFormat(getLocale(), {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
   }).format(new Date(date));
 }
 
