@@ -14,15 +14,10 @@ export class AppError extends Error {
 }
 
 export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {
-  if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      error: err.message,
-    });
-  }
+  const statusCode = err instanceof AppError ? err.statusCode : 500;
+  const message = err.message || 'Internal server error';
 
-  logger.error('Unhandled error:', err);
+  console.error(`[ERROR ${statusCode}]`, message);
 
-  return res.status(500).json({
-    error: 'Internal server error.',
-  });
+  return res.status(statusCode).json({ error: message });
 }
