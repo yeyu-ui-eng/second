@@ -23,7 +23,8 @@ import { settingsRouter } from './routes/settings';
 import path from 'path';
 import fs from 'fs';
 
-const dbUrl = process.env.DATABASE_URL || 'file:./dev.db';
+const dbUrl = process.env.DATABASE_URL || 'file:./prod.db';
+process.env.DATABASE_URL = dbUrl;
 if (dbUrl.startsWith('file:')) {
   const dbPath = dbUrl.replace('file:', '');
   const dir = path.dirname(dbPath);
@@ -32,7 +33,9 @@ if (dbUrl.startsWith('file:')) {
   }
 }
 
-export const prisma = new PrismaClient();
+export const prisma = new PrismaClient({
+  datasources: { db: { url: dbUrl } },
+});
 
 const app = express();
 
@@ -91,11 +94,11 @@ if (process.env.NODE_ENV !== 'test') {
       .then(async () => {
         console.log('Database connected');
         try {
-          execSync('npx prisma migrate deploy 2>/dev/null || true', { stdio: 'inherit' });
+          execSync(`npx prisma migrate deploy 2>/dev/null || true`, { stdio: 'inherit', env: { ...process.env, DATABASE_URL: dbUrl } });
           const userCount = await prisma.user.count();
           if (userCount === 0) {
             console.log('Seeding database...');
-            execSync('npx ts-node prisma/seed.ts 2>/dev/null || true', { stdio: 'inherit' });
+            execSync(`npx ts-node prisma/seed.ts 2>/dev/null || true`, { stdio: 'inherit', env: { ...process.env, DATABASE_URL: dbUrl } });
           }
         } catch { /* not critical */ }
       })
