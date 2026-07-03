@@ -69,8 +69,10 @@ app.use(errorHandler);
 
 const PORT = parseInt(process.env.PORT || '8000');
 
+let server: any;
+
 if (process.env.NODE_ENV !== 'test') {
-  const server = app.listen(PORT, '0.0.0.0', () => {
+  server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
   });
 
@@ -86,5 +88,5 @@ if (process.env.NODE_ENV !== 'test') {
   }
 }
 
-export { server as server };
+export { server };
 export default app;
