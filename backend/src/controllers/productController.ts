@@ -21,10 +21,10 @@ export class ProductController {
       const { search, category, page = '1', limit = '10' } = req.query;
       const where: any = { isActive: true };
       if (search) {
-        where.OR = [
-          { name: { contains: search as string, mode: 'insensitive' } },
-          { sku: { contains: search as string, mode: 'insensitive' } },
-        ];
+      where.OR = [
+        { name: { contains: search as string } },
+        { sku: { contains: search as string } },
+      ];
       }
       if (category) where.category = category;
 

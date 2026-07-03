@@ -21,6 +21,16 @@ import { notificationRouter } from './routes/notifications';
 import { analyticsRouter } from './routes/analytics';
 import { settingsRouter } from './routes/settings';
 import path from 'path';
+import fs from 'fs';
+
+const dbUrl = process.env.DATABASE_URL || 'file:./dev.db';
+if (dbUrl.startsWith('file:')) {
+  const dbPath = dbUrl.replace('file:', '');
+  const dir = path.dirname(dbPath);
+  if (dir && dir !== '.') {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
 
 export const prisma = new PrismaClient();
 

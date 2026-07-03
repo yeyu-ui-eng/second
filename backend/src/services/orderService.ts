@@ -60,9 +60,9 @@ export class OrderService {
     if (params.userId) where.userId = params.userId;
     if (params.search) {
       where.OR = [
-        { orderNumber: { contains: params.search, mode: 'insensitive' } },
-        { customer: { firstName: { contains: params.search, mode: 'insensitive' } } },
-        { customer: { lastName: { contains: params.search, mode: 'insensitive' } } },
+        { orderNumber: { contains: params.search } },
+        { customer: { firstName: { contains: params.search } } },
+        { customer: { lastName: { contains: params.search } } },
       ];
     }
     if (params.startDate || params.endDate) {

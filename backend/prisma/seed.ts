@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -14,7 +14,7 @@ async function main() {
       password: hashedPassword,
       firstName: 'Admin',
       lastName: 'User',
-      role: UserRole.ADMIN,
+      role: 'ADMIN',
       phone: '+1-555-0100',
     },
   });
@@ -27,7 +27,7 @@ async function main() {
       password: hashedPassword,
       firstName: 'Sarah',
       lastName: 'Johnson',
-      role: UserRole.SALES,
+      role: 'SALES',
       phone: '+1-555-0101',
     },
   });
@@ -40,7 +40,7 @@ async function main() {
       password: hashedPassword,
       firstName: 'Mike',
       lastName: 'Chen',
-      role: UserRole.SALES,
+      role: 'SALES',
       phone: '+1-555-0102',
     },
   });
@@ -53,7 +53,7 @@ async function main() {
       password: hashedPassword,
       firstName: 'David',
       lastName: 'Kim',
-      role: UserRole.PRODUCTION,
+      role: 'PRODUCTION',
       phone: '+1-555-0103',
     },
   });
@@ -66,7 +66,7 @@ async function main() {
       password: hashedPassword,
       firstName: 'Lisa',
       lastName: 'Park',
-      role: UserRole.PRODUCTION,
+      role: 'PRODUCTION',
       phone: '+1-555-0104',
     },
   });

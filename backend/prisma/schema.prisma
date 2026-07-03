@@ -3,51 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-enum UserRole {
-  ADMIN
-  SALES
-  PRODUCTION
-}
-
-enum OrderStatus {
-  NEW
-  CONFIRMED
-  IN_PRODUCTION
-  READY
-  DELIVERED
-  CANCELLED
-}
-
-enum ProductionStage {
-  WAITING
-  ASSIGNED
-  CUTTING
-  SEWING
-  QUALITY_CHECK
-  PACKAGING
-  READY
-  DELIVERED
-}
-
-enum PaymentStatus {
-  PENDING
-  PARTIAL
-  PAID
-  REFUNDED
-}
-
-enum NotificationType {
-  NEW_ORDER
-  PRODUCTION_ASSIGNED
-  PRODUCTION_COMPLETED
-  ORDER_DELAYED
-  DUE_DATE_APPROACHING
-  ORDER_CANCELLED
-  GENERAL
 }
 
 model User {
@@ -58,7 +15,7 @@ model User {
   lastName      String
   phone         String?
   avatar        String?
-  role          UserRole @default(SALES)
+  role          String   @default("SALES")
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -132,25 +89,25 @@ model Customer {
 }
 
 model Order {
-  id              String       @id @default(uuid())
-  orderNumber     String       @unique
+  id              String   @id @default(uuid())
+  orderNumber     String   @unique
   customerId      String
   userId          String
   productId       String
-  quantity        Int          @default(1)
+  quantity        Int      @default(1)
   size            String?
   color           String?
-  unitPrice       Float        @default(0)
-  totalPrice      Float        @default(0)
-  discount        Float        @default(0)
-  status          OrderStatus  @default(NEW)
-  paymentStatus   PaymentStatus @default(PENDING)
-  orderDate       DateTime     @default(now())
+  unitPrice       Float    @default(0)
+  totalPrice      Float    @default(0)
+  discount        Float    @default(0)
+  status          String   @default("NEW")
+  paymentStatus   String   @default("PENDING")
+  orderDate       DateTime @default(now())
   dueDate         DateTime?
   deliveredAt     DateTime?
   notes           String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   customer        Customer     @relation(fields: [customerId], references: [id])
   user            User         @relation(fields: [userId], references: [id])
@@ -168,19 +125,19 @@ model Order {
 }
 
 model ProductionTask {
-  id              String          @id @default(uuid())
+  id              String   @id @default(uuid())
   orderId         String
   assignedTo      String
-  stage           ProductionStage @default(WAITING)
+  stage           String   @default("WAITING")
   startedAt       DateTime?
   completedAt     DateTime?
   notes           String?
   delayReason     String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  order           Order           @relation(fields: [orderId], references: [id])
-  assignedUser    User            @relation(fields: [assignedTo], references: [id])
+  order           Order    @relation(fields: [orderId], references: [id])
+  assignedUser    User     @relation(fields: [assignedTo], references: [id])
 
   @@index([orderId])
   @@index([assignedTo])
@@ -204,14 +161,14 @@ model Attachment {
 }
 
 model Notification {
-  id      String           @id @default(uuid())
-  userId  String
-  title   String
-  message String
-  type    NotificationType @default(GENERAL)
-  isRead  Boolean          @default(false)
-  link    String?
-  createdAt DateTime       @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("GENERAL")
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -226,7 +183,7 @@ model AuditLog {
   action     String
   entity     String
   entityId   String?
-  details    Json?
+  details    String?
   ipAddress  String?
   userAgent  String?
   createdAt  DateTime @default(now())

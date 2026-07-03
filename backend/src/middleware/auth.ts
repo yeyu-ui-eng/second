@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { UserRole } from '@prisma/client';
 
 export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
-    role: UserRole;
+    role: string;
     firstName: string;
     lastName: string;
   };
@@ -34,7 +33,7 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
   }
 }
 
-export function authorize(...roles: UserRole[]) {
+export function authorize(...roles: string[]) {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required.' });
