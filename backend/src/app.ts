@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
+import { execSync } from 'child_process';
 import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/auth';
 import { userRouter } from './routes/users';
@@ -21,13 +22,7 @@ import { analyticsRouter } from './routes/analytics';
 import { settingsRouter } from './routes/settings';
 import path from 'path';
 
-export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
+export const prisma = new PrismaClient();
 
 const app = express();
 
@@ -72,12 +67,24 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(errorHandler);
 
-const PORT = parseInt(process.env.PORT || '5000');
+const PORT = parseInt(process.env.PORT || '8000');
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
   });
+
+  if (process.env.DATABASE_URL) {
+    prisma.$connect()
+      .then(() => {
+        console.log('Database connected');
+        try {
+          execSync('npx prisma migrate deploy 2>/dev/null || true', { stdio: 'inherit' });
+        } catch { /* migration not critical */ }
+      })
+      .catch((err: any) => console.error('Database connection failed:', err.message));
+  }
 }
 
+export { server as server };
 export default app;
