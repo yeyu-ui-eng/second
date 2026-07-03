@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nodemon src/app.ts",
-    "build": "tsc",
-    "start": "node dist/app.js",
+    "build": "prisma generate && tsc",
+    "start": "prisma migrate deploy && node dist/app.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "prisma:generate": "prisma generate",
