@@ -78,11 +78,16 @@ if (process.env.NODE_ENV !== 'test') {
 
   if (process.env.DATABASE_URL) {
     prisma.$connect()
-      .then(() => {
+      .then(async () => {
         console.log('Database connected');
         try {
           execSync('npx prisma migrate deploy 2>/dev/null || true', { stdio: 'inherit' });
-        } catch { /* migration not critical */ }
+          const userCount = await prisma.user.count();
+          if (userCount === 0) {
+            console.log('Seeding database...');
+            execSync('npx ts-node prisma/seed.ts 2>/dev/null || true', { stdio: 'inherit' });
+          }
+        } catch { /* not critical */ }
       })
       .catch((err: any) => console.error('Database connection failed:', err.message));
   }
