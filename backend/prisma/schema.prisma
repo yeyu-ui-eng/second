@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  SALES
+  PRODUCTION
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  IN_PRODUCTION
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum ProductionStage {
+  WAITING
+  ASSIGNED
+  CUTTING
+  SEWING
+  QUALITY_CHECK
+  PACKAGING
+  READY
+  DELIVERED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum NotificationType {
+  NEW_ORDER
+  PRODUCTION_ASSIGNED
+  PRODUCTION_COMPLETED
+  ORDER_DELAYED
+  DUE_DATE_APPROACHING
+  ORDER_CANCELLED
+  GENERAL
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  firstName     String
+  lastName      String
+  phone         String?
+  avatar        String?
+  role          UserRole @default(SALES)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orders          Order[]
+  productionTasks ProductionTask[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  refreshTokens   RefreshToken[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  sku         String   @unique
+  category    String?
+  price       Float    @default(0)
+  cost        Float    @default(0)
+  sizes       String?
+  colors      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders Order[]
+
+  @@index([sku])
+  @@index([category])
+  @@map("products")
+}
+
+model Customer {
+  id             String   @id @default(uuid())
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?
+  country        String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  orders Order[]
+
+  @@index([email])
+  @@index([phone])
+  @@map("customers")
+}
+
+model Order {
+  id              String       @id @default(uuid())
+  orderNumber     String       @unique
+  customerId      String
+  userId          String
+  productId       String
+  quantity        Int          @default(1)
+  size            String?
+  color           String?
+  unitPrice       Float        @default(0)
+  totalPrice      Float        @default(0)
+  discount        Float        @default(0)
+  status          OrderStatus  @default(NEW)
+  paymentStatus   PaymentStatus @default(PENDING)
+  orderDate       DateTime     @default(now())
+  dueDate         DateTime?
+  deliveredAt     DateTime?
+  notes           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  user            User         @relation(fields: [userId], references: [id])
+  product         Product      @relation(fields: [productId], references: [id])
+  productionTasks ProductionTask[]
+  attachments     Attachment[]
+
+  @@index([orderNumber])
+  @@index([customerId])
+  @@index([userId])
+  @@index([productId])
+  @@index([status])
+  @@index([orderDate])
+  @@map("orders")
+}
+
+model ProductionTask {
+  id              String          @id @default(uuid())
+  orderId         String
+  assignedTo      String
+  stage           ProductionStage @default(WAITING)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  notes           String?
+  delayReason     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  order           Order           @relation(fields: [orderId], references: [id])
+  assignedUser    User            @relation(fields: [assignedTo], references: [id])
+
+  @@index([orderId])
+  @@index([assignedTo])
+  @@index([stage])
+  @@map("production_tasks")
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  orderId   String
+  filename  String
+  filepath  String
+  mimetype  String
+  size      Int
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("attachments")
+}
+
+model Notification {
+  id      String           @id @default(uuid())
+  userId  String
+  title   String
+  message String
+  type    NotificationType @default(GENERAL)
+  isRead  Boolean          @default(false)
+  link    String?
+  createdAt DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entity     String
+  entityId   String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@map("system_settings")
+}
